@@ -1,5 +1,7 @@
 # Fitting Schlongs
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/M1P225QD23)
+
 Fitting Schlongs is an ESP-less SKSE plugin that corrects genital visibility
 for modular Skyrim outfits using slots 32 and 49. It supports the conventional
 Schlongs of Skyrim (SOS) and The New Gentleman (TNG) keyword and genital-armor
