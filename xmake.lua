@@ -8,7 +8,7 @@ set_config("skyrim_vr", false)
 
 includes("lib/commonlibsse-ng")
 
-local build_version = os.getenv("FITTING_SCHLONGS_BUILD_VERSION") or "1.0.3"
+local build_version = os.getenv("FITTING_SCHLONGS_BUILD_VERSION") or "1.0.4"
 local build_version_string =
     os.getenv("FITTING_SCHLONGS_BUILD_VERSION_STRING") or build_version
 local major, minor, patch = build_version:match("^(%d+)%.(%d+)%.(%d+)$")

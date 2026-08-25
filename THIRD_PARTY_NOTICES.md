@@ -2,12 +2,15 @@
 
 ## CommonLibSSE-NG
 
-Fitting Schlongs is built with CommonLibSSE-NG, which is distributed under the
-MIT License. The complete license text is available at
-`lib/commonlibsse-ng/LICENSE` in the source distribution.
+Fitting Schlongs is built with alandtse/CommonLibSSE-NG 6.7.0. That component
+is distributed under GPL-3.0-or-later with its Modding Exception and GPL-3.0
+Linking Exception (with Corresponding Source). The complete terms are retained
+as `lib/commonlibsse-ng/COPYING` and `lib/commonlibsse-ng/EXCEPTIONS.md` in the
+source distribution.
 
-CommonLibSSE-NG is a separate third-party component. Its MIT License applies to
-that component; Fitting Schlongs itself is licensed under GPLv3.
+Fitting Schlongs itself is distributed under GPLv3. The corresponding source
+archive includes the CommonLibSSE-NG source used to build the released binary,
+as required by the linking exception.
 
 ## Xbyak
 

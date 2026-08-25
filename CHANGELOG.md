@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.4
+
+- Updated the build dependency to alandtse/CommonLibSSE-NG 6.7.0 (`ng`).
+- Updated dependency provenance and licensing notices for CommonLibSSE-NG's
+  GPL-3.0-or-later license, Modding Exception, and GPL-3.0 Linking Exception.
+- No Fitting Schlongs classification or runtime behavior was changed.
+
 ## 1.0.3
 
 - Slot 32 full-body armor now retains default SOS/TNG covering behavior.
