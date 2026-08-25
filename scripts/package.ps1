@@ -38,7 +38,7 @@ New-Item -ItemType Directory -Path $releaseRoot -Force | Out-Null
 New-Item -ItemType Directory -Path $sourceRoot -Force | Out-Null
 
 Copy-Item -LiteralPath $buildDll -Destination (Join-Path $releaseStage 'SKSE/Plugins/FittingSchlongs.dll')
-foreach ($name in @('LICENSE', 'NOTICE.md', 'THIRD_PARTY_NOTICES.md', 'README.md', 'CHANGELOG.md')) {
+foreach ($name in @('LICENSE', 'NOTICE.md', 'THIRD_PARTY_NOTICES.md')) {
     Copy-Item -LiteralPath (Join-Path $projectRoot $name) -Destination $releaseStage
 }
 
