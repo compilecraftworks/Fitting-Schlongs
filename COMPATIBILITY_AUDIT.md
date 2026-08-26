@@ -17,7 +17,9 @@
   dispatch path. No plugin-owned derived virtual override follows a
   runtime-exclusive base entry.
 - The upstream XMake package versions and the exact xmake-repo commit remain
-  locked in `xmake-requires.lock`; they are not replaced independently.
+  locked in `xmake-requires.lock`; together they form the verified build
+  closure and are not replaced independently merely because newer individual
+  versions exist.
 
 ## Build tool
 
@@ -25,10 +27,10 @@
   `96ad28edb71dc4e9c8193924a491629c656e8e8c`.
 - Verified the downloaded official Windows x64 bundle against the SHA-256 in
   `DEPENDENCIES.md` and confirmed that it reports version 3.1.0.
-- A clean dependency bootstrap could not complete in the current environment
-  because XMake's host-package download stalled while acquiring 7-Zip. This
-  is a package-mirror/bootstrap failure, not a compiler or source error. The
-  same bootstrap stall reproduced with the previously installed XMake 3.0.9.
-- The unchanged runtime source had already completed a clean SE/AE release
-  build against the pinned CommonLibSSE-NG 6.7.0 checkout before this
-  repository-only pinning and documentation update.
+- Completed a clean dependency bootstrap with XMake 3.1.0. Its locked host
+  package installed 7-Zip 19.00 successfully before resolving the project
+  dependencies.
+- Completed a clean SE/AE `releasedbg` compile and link with XMake 3.1.0,
+  CommonLibSSE-NG 6.7.0, and Visual Studio 2026/MSVC 14.51.36231.
+- Confirmed the generated compile definitions enable `ENABLE_SKYRIM_SE=1` and
+  `ENABLE_SKYRIM_AE=1`, omit `ENABLE_SKYRIM_VR`, and use CommonLib 6.7.0.

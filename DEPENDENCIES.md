@@ -33,6 +33,12 @@ pins its XMake packages; Fitting Schlongs preserves those versions and the
 exact xmake-repo commit recorded in `xmake-requires.lock` instead of overriding
 tested transitive dependencies independently.
 
+The transitive dependencies pinned by the selected stable upstream release are
+treated as one verified build closure. They are not replaced individually only
+because a newer standalone version exists. Updating that closure requires
+selecting a newer stable CommonLibSSE-NG release and repeating the changelog,
+API, ABI, runtime-layout, build-system, and clean-build validation.
+
 The versioned source release includes this dependency's preferred source form
 and its `COPYING` and `EXCEPTIONS.md` license terms so that they accompany the
 corresponding Fitting Schlongs binary. Generated CommonLib build outputs are
