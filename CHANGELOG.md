@@ -6,6 +6,8 @@
   tag and pinned its exact commit as a Git submodule.
 - Documented stable XMake 3.1.0 with its exact tag commit and official bundle
   checksum for reproducible release builds.
+- Completed a clean SE/AE release build with XMake 3.1.0 and the pinned
+  CommonLibSSE-NG 6.7.0 build closure.
 - Updated dependency provenance and licensing notices for CommonLibSSE-NG's
   GPL-3.0-or-later license, Modding Exception, and GPL-3.0 Linking Exception.
 - No Fitting Schlongs classification or runtime behavior was changed.
