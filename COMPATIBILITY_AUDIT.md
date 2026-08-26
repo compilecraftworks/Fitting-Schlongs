@@ -1,5 +1,23 @@
 # Dependency compatibility audit
 
+## Verified Skyrim runtime layouts
+
+- Skyrim SE 1.5.97.0: verified flat SE relocation IDs and hook offsets.
+- Skyrim AE 1.6.1170.0: verified flat AE relocation IDs and hook offsets.
+- Every other version, including VR, fails closed before trampoline
+  allocation. Runtime selection is based on the exact loaded four-component
+  game version rather than the broad SE/AE compile-time family.
+- All three hook sites are validated before any hook is written. Each site
+  must contain an unmodified near CALL (`E8`) to the expected Address Library
+  target; unknown or pre-patched CALL/JMP targets reject the whole hook set.
+- Regression tests cover the immediately adjacent versions on both sides of
+  both supported versions.
+- Direct engine data usage was audited after the CommonLibSSE-NG 6.7.0
+  upgrade. `ActorRuntimeData` is accessed through CommonLib's versioned
+  accessor; remaining armor, inventory-entry, and inventory-owner members do
+  not cross a documented boundary between the two explicitly supported
+  runtimes.
+
 ## CommonLibSSE-NG 6.7.0
 
 - Stable tag and commit: `v6.7.0`,

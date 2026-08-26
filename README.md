@@ -9,7 +9,7 @@ structures.
 
 ## Requirements
 
-- Skyrim Special Edition or Anniversary Edition
+- Skyrim SE 1.5.97.0 or Skyrim AE 1.6.1170.0
 - SKSE64
 - Address Library for SKSE Plugins
 - Schlongs of Skyrim or The New Gentleman
@@ -18,6 +18,10 @@ Skyrim Fitting System is **not** a requirement. When
 `SkyrimFittingSystem.dll` is loaded, Fitting Schlongs disables itself because
 Skyrim Fitting System already contains this correction and both plugins must
 not install the same skinning hooks.
+
+Other Skyrim runtime versions are intentionally rejected until their three
+skinning call sites have been verified. If another DLL has already modified
+one of those call sites, Fitting Schlongs leaves all of its hooks inactive.
 
 ## Behavior
 

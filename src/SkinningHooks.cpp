@@ -4,6 +4,7 @@
 
 #include "SkinningHooks.h"
 
+#include "RuntimeSupport.h"
 #include "SlotCorrection.h"
 
 #include <xbyak/xbyak.h>
@@ -11,15 +12,12 @@
 namespace {
 SKSE::Trampoline g_localTrampoline{"SOS/TNG slot correction skinning"};
 std::once_flag g_installOnce;
+bool g_installSucceeded{false};
 
 struct CallSiteBranch {
   std::uint8_t opcode{0};
   std::uintptr_t target{0};
   bool valid{false};
-  bool expected{false};
-
-  [[nodiscard]] bool ChainsAsCall() const { return opcode == 0xE8; }
-  [[nodiscard]] bool ChainsAsJump() const { return opcode == 0xE9; }
 };
 
 [[nodiscard]] std::uintptr_t RelocationAddress(
@@ -35,7 +33,7 @@ struct CallSiteBranch {
     const std::uintptr_t a_hookAddress, const std::uintptr_t a_expectedTarget,
     std::string_view a_label) {
   const auto opcode = *reinterpret_cast<const std::uint8_t *>(a_hookAddress);
-  if (opcode != 0xE8 && opcode != 0xE9) {
+  if (opcode != 0xE8) {
     logger::warn(
         "SOS/TNG slot correction hook '{}' found unexpected opcode {:02X} at {:X}",
         a_label, opcode, a_hookAddress);
@@ -46,13 +44,39 @@ struct CallSiteBranch {
       *reinterpret_cast<const std::int32_t *>(a_hookAddress + 1);
   const auto target = a_hookAddress + 5 + displacement;
   if (opcode == 0xE8 && target == a_expectedTarget) {
-    return {.opcode = opcode, .target = target, .valid = true, .expected = true};
+    return {.opcode = opcode, .target = target, .valid = true};
   }
 
   logger::warn(
-      "SOS/TNG slot correction hook '{}' call site appears pre-patched: opcode {:02X}, target {:X}, expected {:X}",
+      "SOS/TNG slot correction hook '{}' does not match the verified CALL target: opcode {:02X}, target {:X}, expected {:X}",
       a_label, opcode, target, a_expectedTarget);
-  return {.opcode = opcode, .target = target, .valid = true};
+  return {.opcode = opcode, .target = target};
+}
+
+[[nodiscard]] bool ValidateHookSites(const stsc::RuntimeLayout a_layout) {
+  static REL::Relocation<std::uintptr_t> applyArmorAddon{
+      RELOCATION_ID(17392, 17792)};
+  static REL::Relocation<std::uintptr_t> getWornMask{
+      RELOCATION_ID(15806, 16044)};
+  static REL::Relocation<std::uintptr_t> visitWornItems{
+      RELOCATION_ID(15856, 16096)};
+
+  const auto vanillaAddress =
+      RelocationAddress(REL::ID(24232), REL::ID(24736), 0x302, 0x302);
+  const auto vanilla = InspectCallSite(vanillaAddress,
+                                       applyArmorAddon.address(),
+                                       "vanilla block validation");
+
+  const bool isAE = a_layout == stsc::RuntimeLayout::kAE161170;
+  const auto wornAddress = isAE ? REL::ID(24724).address() + 0x80
+                                : REL::ID(24220).address() + 0x7C;
+  const auto customAddress = isAE ? REL::ID(24725).address() + 0x1EF
+                                  : REL::ID(24231).address() + 0x81;
+  const auto worn = InspectCallSite(wornAddress, getWornMask.address(),
+                                    "worn mask validation");
+  const auto custom = InspectCallSite(customAddress, visitWornItems.address(),
+                                      "custom skin validation");
+  return vanilla.valid && worn.valid && custom.valid;
 }
 
 bool InstallDontVanillaSkinHook() {
@@ -69,15 +93,8 @@ bool InstallDontVanillaSkinHook() {
         "Skipped SOS/TNG slot correction vanilla block hook");
     return false;
   }
-  if (!callSite.expected) {
-    logger::warn(
-        "SOS/TNG slot correction vanilla block hook will chain the existing patched target {:X}",
-        callSite.target);
-  }
-
   struct Code : Xbyak::CodeGenerator {
-    Code(std::uintptr_t a_resumeAddress, std::uintptr_t a_nextTarget,
-         bool a_chainAsJump) {
+    Code(std::uintptr_t a_resumeAddress, std::uintptr_t a_nextTarget) {
       Xbyak::Label out;
       Xbyak::Label fNextTarget;
       Xbyak::Label fShouldBlockVanillaArmor;
@@ -96,11 +113,7 @@ bool InstallDontVanillaSkinHook() {
       pop(rcx);
       test(al, al);
       jnz(out);
-      if (a_chainAsJump) {
-        jmp(ptr[rip + fNextTarget]);
-      } else {
-        call(ptr[rip + fNextTarget]);
-      }
+      call(ptr[rip + fNextTarget]);
 
       L(out);
       jmp(ptr[rip]);
@@ -114,14 +127,14 @@ bool InstallDontVanillaSkinHook() {
     }
   };
 
-  Code code{hookAddress + 0x5, callSite.target, callSite.ChainsAsJump()};
+  Code code{hookAddress + 0x5, callSite.target};
   auto *stub = g_localTrampoline.allocate(code);
   branchTrampoline.write_branch<5>(hookAddress, stub);
   logger::info("Installed SOS/TNG slot correction vanilla block hook");
   return true;
 }
 
-void InstallShimWornFlagsHookSE() {
+bool InstallShimWornFlagsHookSE() {
   auto &branchTrampoline = SKSE::GetTrampoline();
 
   const auto hookAddress = REL::ID(24220).address() + 0x7C;
@@ -129,9 +142,9 @@ void InstallShimWornFlagsHookSE() {
                                                                    16044)};
   const auto callSite =
       InspectCallSite(hookAddress, getWornMask.address(), "SE worn mask");
-  if (!callSite.valid || !callSite.ChainsAsCall()) {
+  if (!callSite.valid) {
     logger::warn("Skipped SOS/TNG slot correction worn-mask hook for SE");
-    return;
+    return false;
   }
 
   struct Code : Xbyak::CodeGenerator {
@@ -186,9 +199,10 @@ void InstallShimWornFlagsHookSE() {
   auto *stub = g_localTrampoline.allocate(code);
   branchTrampoline.write_branch<5>(hookAddress, stub);
   logger::info("Installed SOS/TNG slot correction worn-mask hook for SE");
+  return true;
 }
 
-void InstallShimWornFlagsHookAE() {
+bool InstallShimWornFlagsHookAE() {
   auto &branchTrampoline = SKSE::GetTrampoline();
 
   const auto hookAddress = REL::ID(24724).address() + 0x80;
@@ -196,9 +210,9 @@ void InstallShimWornFlagsHookAE() {
                                                                    16044)};
   const auto callSite =
       InspectCallSite(hookAddress, getWornMask.address(), "AE worn mask");
-  if (!callSite.valid || !callSite.ChainsAsCall()) {
+  if (!callSite.valid) {
     logger::warn("Skipped SOS/TNG slot correction worn-mask hook for AE");
-    return;
+    return false;
   }
 
   struct Code : Xbyak::CodeGenerator {
@@ -253,9 +267,10 @@ void InstallShimWornFlagsHookAE() {
   auto *stub = g_localTrampoline.allocate(code);
   branchTrampoline.write_branch<5>(hookAddress, stub);
   logger::info("Installed SOS/TNG slot correction worn-mask hook for AE");
+  return true;
 }
 
-void InstallCustomSkinHookSE() {
+bool InstallCustomSkinHookSE() {
   auto &branchTrampoline = SKSE::GetTrampoline();
 
   const auto hookAddress = REL::ID(24231).address() + 0x81;
@@ -263,9 +278,9 @@ void InstallCustomSkinHookSE() {
                                                                      16096)};
   const auto callSite =
       InspectCallSite(hookAddress, visitWornItems.address(), "SE custom skin");
-  if (!callSite.valid || !callSite.ChainsAsCall()) {
+  if (!callSite.valid) {
     logger::warn("Skipped SOS/TNG slot correction custom skin hook for SE");
-    return;
+    return false;
   }
 
   struct Code : Xbyak::CodeGenerator {
@@ -326,9 +341,10 @@ void InstallCustomSkinHookSE() {
   auto *stub = g_localTrampoline.allocate(code);
   branchTrampoline.write_branch<5>(hookAddress, stub);
   logger::info("Installed SOS/TNG slot correction custom skin hook for SE");
+  return true;
 }
 
-void InstallCustomSkinHookAE() {
+bool InstallCustomSkinHookAE() {
   auto &branchTrampoline = SKSE::GetTrampoline();
 
   const auto hookAddress = REL::ID(24725).address() + 0x1EF;
@@ -336,9 +352,9 @@ void InstallCustomSkinHookAE() {
                                                                      16096)};
   const auto callSite =
       InspectCallSite(hookAddress, visitWornItems.address(), "AE custom skin");
-  if (!callSite.valid || !callSite.ChainsAsCall()) {
+  if (!callSite.valid) {
     logger::warn("Skipped SOS/TNG slot correction custom skin hook for AE");
-    return;
+    return false;
   }
 
   struct Code : Xbyak::CodeGenerator {
@@ -399,14 +415,22 @@ void InstallCustomSkinHookAE() {
   auto *stub = g_localTrampoline.allocate(code);
   branchTrampoline.write_branch<5>(hookAddress, stub);
   logger::info("Installed SOS/TNG slot correction custom skin hook for AE");
+  return true;
 }
 } // namespace
 
 namespace stsc {
-void InstallSkinningHooks() {
+bool InstallSkinningHooks() {
   std::call_once(g_installOnce, [] {
-    if (REL::Module::IsVR()) {
-      logger::warn("SOS/TNG slot correction hooks are disabled on VR");
+    const auto layout = SelectRuntimeLayout(CurrentGameVersion());
+    if (layout == RuntimeLayout::kUnsupported) {
+      logger::critical("Refused to install hooks for an unverified runtime layout");
+      return;
+    }
+
+    if (!ValidateHookSites(layout)) {
+      logger::critical(
+          "Refused to install any hooks because at least one call site was modified or unverified");
       return;
     }
 
@@ -414,14 +438,15 @@ void InstallSkinningHooks() {
       g_localTrampoline.create(64 * 1024);
     }
 
-    InstallDontVanillaSkinHook();
-    if (REL::Module::IsAE()) {
-      InstallShimWornFlagsHookAE();
-      InstallCustomSkinHookAE();
+    const auto vanillaInstalled = InstallDontVanillaSkinHook();
+    if (layout == RuntimeLayout::kAE161170) {
+      g_installSucceeded = vanillaInstalled && InstallShimWornFlagsHookAE() &&
+                           InstallCustomSkinHookAE();
     } else {
-      InstallShimWornFlagsHookSE();
-      InstallCustomSkinHookSE();
+      g_installSucceeded = vanillaInstalled && InstallShimWornFlagsHookSE() &&
+                           InstallCustomSkinHookSE();
     }
   });
+  return g_installSucceeded;
 }
 } // namespace stsc

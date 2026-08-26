@@ -4,5 +4,5 @@
 #pragma once
 
 namespace stsc {
-void InstallSkinningHooks();
+[[nodiscard]] bool InstallSkinningHooks();
 } // namespace stsc

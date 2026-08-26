@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$Version = '1.0.4',
+    [string]$Version = '1.0.5',
     [string]$BuildMode = 'releasedbg'
 )
 
@@ -43,7 +43,7 @@ foreach ($name in @('LICENSE', 'NOTICE.md', 'THIRD_PARTY_NOTICES.md')) {
 }
 
 foreach ($name in @(
-    'src', 'scripts', 'LICENSE', 'NOTICE.md', 'THIRD_PARTY_NOTICES.md',
+    'src', 'tests', 'scripts', 'LICENSE', 'NOTICE.md', 'THIRD_PARTY_NOTICES.md',
     'DEPENDENCIES.md', 'COMPATIBILITY_AUDIT.md', 'README.md', 'CHANGELOG.md', 'CHANGELOG.ko.md', '.gitignore', '.gitmodules',
     'xmake.lua', 'xmake-requires.lock'
 )) {

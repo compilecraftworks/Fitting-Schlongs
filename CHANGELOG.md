@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.5
+
+- Added an explicit verified runtime table for Skyrim SE 1.5.97.0 and AE
+  1.6.1170.0; the plugin now fails closed on every other runtime.
+- Hook installation now requires all three call sites to match the exact
+  expected unmodified CALL targets. Pre-patched or unknown sites are no longer
+  chained.
+- Added regression tests immediately below and above each supported runtime
+  boundary.
+- No outfit classification rules were changed.
+
 ## 1.0.4
 
 - Updated the build dependency to the stable alandtse/CommonLibSSE-NG 6.7.0
