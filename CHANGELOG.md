@@ -2,7 +2,10 @@
 
 ## 1.0.4
 
-- Updated the build dependency to alandtse/CommonLibSSE-NG 6.7.0 (`ng`).
+- Updated the build dependency to the stable alandtse/CommonLibSSE-NG 6.7.0
+  tag and pinned its exact commit as a Git submodule.
+- Documented stable XMake 3.1.0 with its exact tag commit and official bundle
+  checksum for reproducible release builds.
 - Updated dependency provenance and licensing notices for CommonLibSSE-NG's
   GPL-3.0-or-later license, Modding Exception, and GPL-3.0 Linking Exception.
 - No Fitting Schlongs classification or runtime behavior was changed.

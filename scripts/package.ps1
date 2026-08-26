@@ -44,7 +44,7 @@ foreach ($name in @('LICENSE', 'NOTICE.md', 'THIRD_PARTY_NOTICES.md')) {
 
 foreach ($name in @(
     'src', 'scripts', 'LICENSE', 'NOTICE.md', 'THIRD_PARTY_NOTICES.md',
-    'DEPENDENCIES.md', 'README.md', 'CHANGELOG.md', '.gitignore',
+    'DEPENDENCIES.md', 'COMPATIBILITY_AUDIT.md', 'README.md', 'CHANGELOG.md', '.gitignore', '.gitmodules',
     'xmake.lua', 'xmake-requires.lock'
 )) {
     Copy-Item -LiteralPath (Join-Path $projectRoot $name) -Destination $sourceStage -Recurse

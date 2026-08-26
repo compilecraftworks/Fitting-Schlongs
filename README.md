@@ -56,10 +56,13 @@ xmake f -m releasedbg
 xmake
 ```
 
-The repository expects CommonLibSSE-NG under `lib/commonlibsse-ng`. The source
-release archive includes the dependency source used for the corresponding
-binary. When cloning from GitHub, follow `DEPENDENCIES.md` to place the exact
-pinned CommonLibSSE-NG checkout in that directory.
+The repository pins CommonLibSSE-NG as a submodule under
+`lib/commonlibsse-ng`. Run `git submodule update --init lib/commonlibsse-ng`
+after cloning. The source release archive includes the dependency source used
+for the corresponding binary. Exact tool versions, commits, and integrity
+information are recorded in `DEPENDENCIES.md`.
+The reviewed API, ABI, runtime-layout, and build-tool results are recorded in
+`COMPATIBILITY_AUDIT.md`.
 
 Build output:
 
